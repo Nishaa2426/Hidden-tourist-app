@@ -1,10 +1,26 @@
 import * as React from "react";
-import { Link } from "react-router-dom";
-import { MapPin, Menu } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { MapPin, Menu, User, LogOut, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUser } from "@/contexts/UserContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const { user, logout, isAuthenticated } = useUser();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -21,9 +37,36 @@ const Navbar = () => {
             <Link to="/destinations" className="text-gray-700 hover:text-blue-600">Destinations</Link>
             <Link to="/packages" className="text-gray-700 hover:text-blue-600">Packages</Link>
             <Link to="/about" className="text-gray-700 hover:text-blue-600">About</Link>
-            <Link to="/auth">
-              <Button variant="default">Login</Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    <span>{user?.fullName}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link to="/booking-history" className="flex items-center cursor-pointer">
+                      <History className="w-4 h-4 mr-2" />
+                      Booking History
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600">
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Link to="/auth">
+                <Button variant="default">Login</Button>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -42,9 +85,29 @@ const Navbar = () => {
             <Link to="/destinations" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">Destinations</Link>
             <Link to="/packages" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">Packages</Link>
             <Link to="/about" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">About</Link>
-            <Link to="/auth" className="block py-2 px-4">
-              <Button variant="default" className="w-full">Login</Button>
-            </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <div className="py-2 px-4 text-sm text-gray-500">
+                  Logged in as: <span className="font-semibold text-gray-700">{user?.fullName}</span>
+                </div>
+                <Link to="/booking-history" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">
+                  <History className="w-4 h-4 inline mr-2" />
+                  Booking History
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="block w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded"
+                >
+                  <LogOut className="w-4 h-4 inline mr-2" />
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/auth" className="block py-2 px-4">
+                <Button variant="default" className="w-full">Login</Button>
+              </Link>
+            )}
           </div>
         )}
       </div>
@@ -53,4 +116,3 @@ const Navbar = () => {
 };
 
 export default Navbar;
-
