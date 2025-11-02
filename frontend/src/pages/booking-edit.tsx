@@ -1,5 +1,3 @@
-// File: frontend/src/pages/booking-edit.tsx
-
 import * as React from "react";
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
@@ -27,10 +25,11 @@ interface BookingData {
   packageName: string;
   totalAmount: number;
 }
-const { user, isAuthenticated } = useUser();
+
 const BookingEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
+  const { user, isAuthenticated } = useUser();
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<BookingData>({
@@ -46,50 +45,54 @@ const BookingEdit = () => {
   });
 
   useEffect(() => {
-    if (id) {
+    if (!isAuthenticated) {
+      toast.error("Please login to edit bookings");
+      navigate("/auth");
+      return;
+    }
+    if (id && user) {
       fetchBooking();
     }
-  }, [id]);
+  }, [id, user, isAuthenticated, navigate]);
 
- const fetchBooking = async () => {
-  if (!user) return;
-  
-  try {
-    const response = await fetch(`http://localhost:5000/api/bookings/${id}`);
-    if (response.ok) {
-      const data = await response.json();
-      
-      
-      // Verify this booking belongs to the current user
-      if (data.userId !== user.userId) {
-        toast.error("Unauthorized access");
+  const fetchBooking = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch(`http://localhost:5000/api/bookings/${id}`);
+      if (response.ok) {
+        const data = await response.json();
+        
+        // Verify this booking belongs to the current user
+        if (data.userId !== user.userId) {
+          toast.error("Unauthorized access");
+          navigate("/booking-history");
+          return;
+        }
+        
+        setFormData({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          phone: data.phone,
+          date: new Date(data.date),
+          travelers: data.travelers.toString(),
+          specialRequests: data.specialRequests || "",
+          packageName: data.packageName,
+          totalAmount: data.totalAmount,
+        });
+      } else {
+        toast.error("Failed to fetch booking details");
         navigate("/booking-history");
-        return;
       }
-      
-      setFormData({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        phone: data.phone,
-        date: new Date(data.date),
-        travelers: data.travelers.toString(),
-        specialRequests: data.specialRequests || "",
-        packageName: data.packageName,
-        totalAmount: data.totalAmount,
-      });
-    } else {
-      toast.error("Failed to fetch booking details");
+    } catch (error) {
+      console.error("Error fetching booking:", error);
+      toast.error("Something went wrong!");
       navigate("/booking-history");
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching booking:", error);
-    toast.error("Something went wrong!");
-    navigate("/booking-history");
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +119,7 @@ const BookingEdit = () => {
 
       if (response.ok) {
         toast.success("Booking updated successfully!");
-        navigate("/bookings");
+        navigate("/booking-history");
       } else {
         const error = await response.json();
         toast.error(error.message || "Failed to update booking");
@@ -138,6 +141,10 @@ const BookingEdit = () => {
       [id]: value,
     }));
   };
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (loading) {
     return (
@@ -262,6 +269,7 @@ const BookingEdit = () => {
                                 onSelect={(date) =>
                                   setFormData((prev) => ({ ...prev, date }))
                                 }
+                                disabled={(date) => date < new Date()}
                               />
                             </PopoverContent>
                           </Popover>
@@ -302,7 +310,7 @@ const BookingEdit = () => {
                         variant="outline"
                         size="lg"
                         className="flex-1"
-                        onClick={() => navigate("/bookings")}
+                        onClick={() => navigate("/booking-history")}
                         disabled={isSubmitting}
                       >
                         Cancel

@@ -33,10 +33,29 @@ const Navbar = () => {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600">Home</Link>
-            <Link to="/destinations" className="text-gray-700 hover:text-blue-600">Destinations</Link>
-            <Link to="/packages" className="text-gray-700 hover:text-blue-600">Packages</Link>
-            <Link to="/about" className="text-gray-700 hover:text-blue-600">About</Link>
+            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Home
+            </Link>
+            <Link to="/destinations" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Destinations
+            </Link>
+            <Link to="/packages" className="text-gray-700 hover:text-blue-600 transition-colors">
+              Packages
+            </Link>
+            <Link to="/about" className="text-gray-700 hover:text-blue-600 transition-colors">
+              About
+            </Link>
+            
+            {/* Show Booking History link for authenticated users */}
+            {isAuthenticated && (
+              <Link 
+                to="/booking-history" 
+                className="text-gray-700 hover:text-blue-600 transition-colors flex items-center gap-1"
+              >
+                <History className="w-4 h-4" />
+                My Bookings
+              </Link>
+            )}
             
             {isAuthenticated ? (
               <DropdownMenu>
@@ -81,22 +100,53 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isOpen && (
           <div className="md:hidden mt-4 pb-4 space-y-2">
-            <Link to="/" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">Home</Link>
-            <Link to="/destinations" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">Destinations</Link>
-            <Link to="/packages" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">Packages</Link>
-            <Link to="/about" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">About</Link>
+            <Link 
+              to="/" 
+              className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded"
+              onClick={() => setIsOpen(false)}
+            >
+              Home
+            </Link>
+            <Link 
+              to="/destinations" 
+              className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded"
+              onClick={() => setIsOpen(false)}
+            >
+              Destinations
+            </Link>
+            <Link 
+              to="/packages" 
+              className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded"
+              onClick={() => setIsOpen(false)}
+            >
+              Packages
+            </Link>
+            <Link 
+              to="/about" 
+              className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded"
+              onClick={() => setIsOpen(false)}
+            >
+              About
+            </Link>
             
             {isAuthenticated ? (
               <>
                 <div className="py-2 px-4 text-sm text-gray-500">
                   Logged in as: <span className="font-semibold text-gray-700">{user?.fullName}</span>
                 </div>
-                <Link to="/booking-history" className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded">
+                <Link 
+                  to="/booking-history" 
+                  className="block py-2 px-4 text-gray-700 hover:bg-blue-50 rounded"
+                  onClick={() => setIsOpen(false)}
+                >
                   <History className="w-4 h-4 inline mr-2" />
-                  Booking History
+                  My Bookings
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    handleLogout();
+                    setIsOpen(false);
+                  }}
                   className="block w-full text-left py-2 px-4 text-red-600 hover:bg-red-50 rounded"
                 >
                   <LogOut className="w-4 h-4 inline mr-2" />
@@ -104,7 +154,7 @@ const Navbar = () => {
                 </button>
               </>
             ) : (
-              <Link to="/auth" className="block py-2 px-4">
+              <Link to="/auth" className="block py-2 px-4" onClick={() => setIsOpen(false)}>
                 <Button variant="default" className="w-full">Login</Button>
               </Link>
             )}
