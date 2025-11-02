@@ -47,7 +47,7 @@ const Booking = () => {
     setIsSubmitting(true);
   
     const bookingData = {
-      userId: user._id,
+      userId: user.userId,
       firstName: (document.getElementById("firstName") as HTMLInputElement).value,
       lastName: (document.getElementById("lastName") as HTMLInputElement).value,
       email: (document.getElementById("email") as HTMLInputElement).value,

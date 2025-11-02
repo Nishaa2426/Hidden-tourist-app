@@ -59,6 +59,7 @@ const BookingEdit = () => {
     if (response.ok) {
       const data = await response.json();
       
+      
       // Verify this booking belongs to the current user
       if (data.userId !== user.userId) {
         toast.error("Unauthorized access");

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useUser } from "@/contexts/UserContext";  // ✅ ADD THIS IMPORT
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,51 +14,52 @@ import { toast } from "@/components/ui/sonner";
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const { setUser } = useUser();  // ✅ ADD THIS LINE
 
   const handleSignIn = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setIsLoading(true);
+    e.preventDefault();
+    setIsLoading(true);
 
-  const email = (document.getElementById("signin-email") as HTMLInputElement).value;
-  const password = (document.getElementById("signin-password") as HTMLInputElement).value;
+    const email = (document.getElementById("signin-email") as HTMLInputElement).value;
+    const password = (document.getElementById("signin-password") as HTMLInputElement).value;
 
-  try {
-    const response = await fetch("http://localhost:5000/api/users/signin", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const response = await fetch("http://localhost:5000/api/users/signin", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      toast.error(errorData.message || "Sign-in failed");
-    } else {
-      const data = await response.json();
-      console.log("✅ Sign-in response:", data);
-      
-      if (!data.user.userId) {
-        console.error("❌ userId is missing from response!");
-        toast.error("Login error: User data incomplete");
-        return;
+      if (!response.ok) {
+        const errorData = await response.json();
+        toast.error(errorData.message || "Sign-in failed");
+      } else {
+        const data = await response.json();
+        console.log("✅ Sign-in response:", data);
+        
+        if (!data.user.userId) {
+          console.error("❌ userId is missing from response!");
+          toast.error("Login error: User data incomplete");
+          return;
+        }
+        
+        // ✅ Update UserContext - THIS IS IMPORTANT!
+        setUser(data.user);
+        
+        toast.success("Sign-in successful!");
+        
+        // ✅ Use navigate instead of window.location.href
+        navigate("/");
       }
-      
-      // Store user info in localStorage
-      localStorage.setItem("user", JSON.stringify(data.user));
-      
-      toast.success("Sign-in successful!");
-      
-      // Reload page to update UserContext
-      window.location.href = "/";
+    } catch (error) {
+      console.error("Sign-in failed:", error);
+      toast.error("Something went wrong! Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (error) {
-    console.error("Sign-in failed:", error);
-    toast.error("Something went wrong! Please try again.");
-  } finally {
-    setIsLoading(false);
-  }
-};
+  };
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
