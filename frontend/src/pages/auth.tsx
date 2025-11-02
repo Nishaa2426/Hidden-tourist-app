@@ -15,41 +15,49 @@ const Auth = () => {
   const navigate = useNavigate();
 
   const handleSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-  
-    const email = (document.getElementById("signin-email") as HTMLInputElement).value;
-    const password = (document.getElementById("signin-password") as HTMLInputElement).value;
-  
-    try {
-      const response = await fetch("http://localhost:5000/api/users/signin", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-  
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error(errorData.message || "Sign-in failed");
-      } else {
-        const data = await response.json();
-        console.log("✅ Sign-in successful:", data);
-        
-        // Store user info in localStorage
-        localStorage.setItem("user", JSON.stringify(data.user));
-        
-        toast.success("Sign-in successful!");
-        navigate("/");
+  e.preventDefault();
+  setIsLoading(true);
+
+  const email = (document.getElementById("signin-email") as HTMLInputElement).value;
+  const password = (document.getElementById("signin-password") as HTMLInputElement).value;
+
+  try {
+    const response = await fetch("http://localhost:5000/api/users/signin", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      toast.error(errorData.message || "Sign-in failed");
+    } else {
+      const data = await response.json();
+      console.log("✅ Sign-in response:", data);
+      
+      if (!data.user.userId) {
+        console.error("❌ userId is missing from response!");
+        toast.error("Login error: User data incomplete");
+        return;
       }
-    } catch (error) {
-      console.error("Sign-in failed:", error);
-      toast.error("Something went wrong! Please try again.");
-    } finally {
-      setIsLoading(false);
+      
+      // Store user info in localStorage
+      localStorage.setItem("user", JSON.stringify(data.user));
+      
+      toast.success("Sign-in successful!");
+      
+      // Reload page to update UserContext
+      window.location.href = "/";
     }
-  };
+  } catch (error) {
+    console.error("Sign-in failed:", error);
+    toast.error("Something went wrong! Please try again.");
+  } finally {
+    setIsLoading(false);
+  }
+};
   
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();

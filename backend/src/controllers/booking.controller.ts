@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import Booking from "../models/booking.model";
-
+import { User } from "../models/user.model";
 // Create Booking
 export const createBooking = async (req: Request, res: Response) => {
   try {
@@ -8,6 +8,12 @@ export const createBooking = async (req: Request, res: Response) => {
     
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
+    }
+
+    // Verify user exists
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     const booking = await Booking.create({ userId, ...bookingData });

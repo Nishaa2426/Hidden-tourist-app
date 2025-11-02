@@ -14,6 +14,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon, Users, Phone, Mail, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useUser } from "@/contexts/UserContext";
 
 interface BookingData {
   firstName: string;
@@ -26,7 +27,7 @@ interface BookingData {
   packageName: string;
   totalAmount: number;
 }
-
+const { user, isAuthenticated } = useUser();
 const BookingEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
@@ -50,34 +51,44 @@ const BookingEdit = () => {
     }
   }, [id]);
 
-  const fetchBooking = async () => {
-    try {
-      const response = await fetch(`http://localhost:5000/api/bookings/${id}`);
-      if (response.ok) {
-        const data = await response.json();
-        setFormData({
-          firstName: data.firstName,
-          lastName: data.lastName,
-          email: data.email,
-          phone: data.phone,
-          date: new Date(data.date),
-          travelers: data.travelers.toString(),
-          specialRequests: data.specialRequests || "",
-          packageName: data.packageName,
-          totalAmount: data.totalAmount,
-        });
-      } else {
-        toast.error("Failed to fetch booking details");
-        navigate("/bookings");
+ const fetchBooking = async () => {
+  if (!user) return;
+  
+  try {
+    const response = await fetch(`http://localhost:5000/api/bookings/${id}`);
+    if (response.ok) {
+      const data = await response.json();
+      
+      // Verify this booking belongs to the current user
+      if (data.userId !== user.userId) {
+        toast.error("Unauthorized access");
+        navigate("/booking-history");
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching booking:", error);
-      toast.error("Something went wrong!");
-      navigate("/bookings");
-    } finally {
-      setLoading(false);
+      
+      setFormData({
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phone: data.phone,
+        date: new Date(data.date),
+        travelers: data.travelers.toString(),
+        specialRequests: data.specialRequests || "",
+        packageName: data.packageName,
+        totalAmount: data.totalAmount,
+      });
+    } else {
+      toast.error("Failed to fetch booking details");
+      navigate("/booking-history");
     }
-  };
+  } catch (error) {
+    console.error("Error fetching booking:", error);
+    toast.error("Something went wrong!");
+    navigate("/booking-history");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

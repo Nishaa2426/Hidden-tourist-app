@@ -17,18 +17,24 @@ async function bootstrap() {
 	});
 
 	app.use('/api/users', userRouter);
-	app.use("/api/bookings", bookingRoutes); //
+	app.use("/api/bookings", bookingRoutes);
 	app.use("/api/payment", paymentRoutes);
-	await connectToDatabase();
+	
+	// Connect to MongoDB with better error handling
+	try {
+		await connectToDatabase();
+		console.log('✅ MongoDB connected successfully');
+	} catch (error) {
+		console.error('❌ MongoDB connection failed:', error);
+		process.exit(1);
+	}
+	
 	app.listen(env.port, () => {
-		console.log(`Server running on http://localhost:${env.port}`);
+		console.log(`✅ Server running on http://localhost:${env.port}`);
 	});
 }
 
 bootstrap().catch((error) => {
-	console.error('Failed to start server', error);
+	console.error('❌ Failed to start server', error);
 	process.exit(1);
 });
-
-
-    
