@@ -1,1 +1,3 @@
-Vekkama illa
+Hidden Tourist app
+Frontend
+Backend
